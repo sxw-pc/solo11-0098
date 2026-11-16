@@ -69,3 +69,8 @@ def test_conflicting_batch_and_sample(tmp_path):
     db=tmp_path/'x.db';init(db,'b','s')
     with pytest.raises(ValueError,match='batch_contract_conflict'):init(db,'b','s',expiry='2028-01-01T00:00:00Z')
     with pytest.raises(ValueError,match='sample_batch_conflict'):init(db,'other','s')
+
+def test_demo_repeat_is_deterministic(tmp_path):
+    first=demo(tmp_path).read_bytes()
+    second=demo(tmp_path).read_bytes()
+    assert first==second

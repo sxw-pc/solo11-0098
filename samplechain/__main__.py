@@ -18,6 +18,7 @@ def init(db_path,batch,sample,expiry='2027-01-01T00:00:00Z'):
     con.close()
 def report(db_path,out):
     con=connect(db_path); data={name:[dict(r) for r in con.execute('SELECT * FROM '+name)] for name in ('batch','sample','source','event','issue','decision')}
+    for row in data['issue']:row.pop('id',None)
     out=Path(out);out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf-8')
     out.with_suffix('.md').write_text('# 样本可检测性\n\n'+'\n'.join(f"- {d['sample_id']}: {d['result']}（规则 {d['rules_version']}）" for d in data['decision'])+'\n',encoding='utf-8')
     con.close();return out
