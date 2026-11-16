@@ -1,7 +1,8 @@
 import json
-from samplechain.__main__ import demo,init
+import pytest
+from samplechain.__main__ import demo,init,report
 from samplechain.ingest import ingest
-from samplechain.rules import evaluate
+from samplechain.rules import evaluate,responsible_at,testable_at
 from samplechain.store import connect
 
 def test_demo(tmp_path):
