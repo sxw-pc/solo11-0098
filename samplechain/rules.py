@@ -25,18 +25,21 @@ def evaluate(db_path):
                 kind=e['kind'];stamp=time(e['ts'])
                 if kind in CHAIN:
                     index=CHAIN.index(kind)
-                    if index!=stage+1:reasons.append('chain_invalid')
+                    if index!=stage+1 and not (stage==4 and kind in ('fridge_in','test')) and not (stage==3 and kind=='test') and not (stage==4 and kind=='fridge_out'):
+                        reasons.append('chain_invalid')
                     stage=index
+                    if e['seal'] and seal and e['seal']!=seal and not opened:reasons.append('seal_mismatch')
+                    if e['seal'] and seal is None:seal=e['seal']
                     if kind=='fridge_out':
-                        if outside is not None: reasons.append('out_unknown')
-                        outside=stamp
-                    if kind=='test' and outside is not None:
+                        if outside is None:outside=stamp
+                    if kind in ('fridge_in','test') and outside is not None:
                         outside_total+=stamp-outside;outside=None
                 elif kind=='open':
                     if opened:reasons.append('seal_mismatch')
                     opened=True;seal=e['seal']
                 elif kind=='reseal':
-                    if not opened or seal!=e['seal']:reasons.append('seal_mismatch')
+                    if not opened or not e['seal']:reasons.append('seal_mismatch')
+                    else:seal=e['seal']
                     opened=False
                 elif kind=='void':voided=True;reasons.append('voided')
                 elif kind=='recollect':
