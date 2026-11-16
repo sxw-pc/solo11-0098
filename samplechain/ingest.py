@@ -33,6 +33,8 @@ def ingest(path,db_path):
                 cur=con.execute('INSERT INTO event(source_id,line_no,device,seq,sample_id,kind,ts,actor,seal,value,payload,sha256) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
                     (source,line_no,device,seq,sample,kind,ts,row.get('actor'),row.get('seal'),row.get('value'),line,event_hash))
                 imported+=1
+                if kind=='recollect' and row.get('replacement'):
+                    con.execute('INSERT INTO recollect_link(event_id,parent,child) VALUES (?,?,?)',(cur.lastrowid,sample,str(row['replacement'])))
                 if not con.execute('SELECT 1 FROM sample WHERE id=?',(sample,)).fetchone():
                     con.execute('INSERT INTO issue(sample_id,event_id,code,detail) VALUES (?,?,?,?)',(sample,cur.lastrowid,'unknown_sample',sample))
             except (KeyError,ValueError,TypeError,json.JSONDecodeError) as exc:
