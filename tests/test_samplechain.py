@@ -91,3 +91,22 @@ def test_recollection_links_replacement(tmp_path):
     assert con.execute("SELECT count(*) FROM issue WHERE code='recollect_invalid'").fetchone()[0]==0
 def test_markdown_report_exists(tmp_path):
     assert demo(tmp_path).with_suffix('.md').exists()
+
+def test_evidence_and_run_are_persisted(tmp_path):
+    data=json.loads(demo(tmp_path).read_text(encoding='utf-8'))
+    assert data["run"]
+    assert data['evidence']
+    assert all(e['run_id'] for e in data['evidence'])
+
+def test_valid_seal_change_after_open(tmp_path):
+    db=tmp_path/'x.db';init(db,'b','s')
+    load(tmp_path,db,[event('collect',1,seal='A'),event('open',2,seal='A'),event('reseal',3,seal='B'),event('handoff',4,seal='B')]);evaluate(db)
+    assert connect(db).execute("SELECT count(*) FROM issue WHERE code='seal_mismatch'").fetchone()[0]==0
+def test_in_range_temperature_is_not_violating(tmp_path):
+    db=tmp_path/'x.db';init(db,'b','s')
+    load(tmp_path,db,[event('temperature',1,value=4)]);evaluate(db)
+    assert connect(db).execute("SELECT count(*) FROM issue WHERE code='temperature'").fetchone()[0]==0
+def test_decision_links_run_and_evidence(tmp_path):
+    data=json.loads(demo(tmp_path).read_text(encoding='utf-8'))
+    assert data['decision'][0]['run_id']==data['run'][0]['id']
+    assert set(json.loads(data['decision'][0]['event_ids'])) <= {e['object_id'] for e in data['evidence']}

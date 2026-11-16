@@ -1,4 +1,5 @@
 import json
+from hashlib import sha256
 from collections import defaultdict
 from datetime import timedelta
 from .ingest import time
@@ -11,6 +12,11 @@ def evaluate(db_path):
         con.execute('DELETE FROM decision')
         con.execute("DELETE FROM issue WHERE code IN ('sequence_gap','chain_invalid','seal_mismatch','out_time','out_unknown','temperature','expired','voided','recollect_invalid')")
         events=[dict(r) for r in con.execute('SELECT * FROM event ORDER BY ts,id')]
+        source_digest=sha256('|'.join(r['sha256'] for r in con.execute('SELECT sha256 FROM source ORDER BY sha256')).encode()).hexdigest()
+        run_id=sha256(('1:'+source_digest).encode()).hexdigest()
+        con.execute('INSERT OR IGNORE INTO run VALUES (?,?,?)',(run_id,'1',source_digest))
+        for event in events:
+            con.execute('INSERT OR REPLACE INTO evidence VALUES (?,?,?,?,?,?,?)',(event['sha256'],run_id,event['sample_id'],event['source_id'],'event',event['id'],event['sha256']))
         by_sample=defaultdict(list);by_device=defaultdict(list)
         for event in events:by_sample[event['sample_id']].append(event);by_device[event['device']].append(event)
         gap_devices=set()
@@ -57,6 +63,6 @@ def evaluate(db_path):
             reasons=sorted(set(reasons))
             for code in reasons:con.execute('INSERT INTO issue(sample_id,code,detail) VALUES (?,?,?)',(sample['id'],code,sample['id']))
             result='不可检测' if any(x in reasons for x in ('voided','chain_invalid','seal_mismatch','out_time','temperature','expired')) else ('证据不足' if reasons else '可检测')
-            con.execute('INSERT INTO decision VALUES (?,?,?,?,?)',(sample['id'],result,json.dumps(reasons),json.dumps([e['id'] for e in stream]),'1'))
+            con.execute('INSERT INTO decision VALUES (?,?,?,?,?,?)',(sample['id'],result,json.dumps(reasons),json.dumps([e['id'] for e in stream]),'1',run_id))
             results[sample['id']]=result
     con.close();return results
