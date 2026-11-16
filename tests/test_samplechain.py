@@ -74,3 +74,20 @@ def test_demo_repeat_is_deterministic(tmp_path):
     first=demo(tmp_path).read_bytes()
     second=demo(tmp_path).read_bytes()
     assert first==second
+
+def test_report_contains_raw_line_hash(tmp_path):
+    data=json.loads(demo(tmp_path).read_text(encoding='utf-8'))
+    assert len(data['source'][0]['sha256'])==64
+    assert len(data['event'][0]['sha256'])==64
+def test_unknown_sample_is_isolated(tmp_path):
+    db=tmp_path/'x.db';init(db,'b','s')
+    row=event('collect',1);row['sample_id']='other';load(tmp_path,db,[row])
+    assert connect(db).execute("SELECT count(*) FROM issue WHERE code='unknown_sample'").fetchone()[0]==1
+def test_recollection_links_replacement(tmp_path):
+    db=tmp_path/'x.db';init(db,'b','s');con=connect(db)
+    with con:con.execute('INSERT INTO sample(id,batch_id,replacement_of) VALUES (?,?,?)',('s2','b','s'))
+    load(tmp_path,db,[event('recollect',1)])
+    evaluate(db)
+    assert con.execute("SELECT count(*) FROM issue WHERE code='recollect_invalid'").fetchone()[0]==0
+def test_markdown_report_exists(tmp_path):
+    assert demo(tmp_path).with_suffix('.md').exists()
