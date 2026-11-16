@@ -17,7 +17,7 @@ def ingest(path,db_path):
         con.close();return {'imported':0,'duplicate_file':True}
     imported=0
     with con:
-        source=con.execute('INSERT INTO source(path,sha256) VALUES (?,?)',(str(path),file_hash)).lastrowid
+        source=con.execute('INSERT INTO source(path,sha256,raw) VALUES (?,?,?)',(str(path),file_hash,raw)).lastrowid
         for line_no,line in enumerate(raw.decode('utf-8-sig').splitlines(),1):
             try:
                 if not line.strip():continue

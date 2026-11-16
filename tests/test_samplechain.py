@@ -110,3 +110,15 @@ def test_decision_links_run_and_evidence(tmp_path):
     data=json.loads(demo(tmp_path).read_text(encoding='utf-8'))
     assert data['decision'][0]['run_id']==data['run'][0]['id']
     assert set(json.loads(data['decision'][0]['event_ids'])) <= {e['object_id'] for e in data['evidence']}
+
+def test_raw_source_is_retained_after_input_changes(tmp_path):
+    path=demo(tmp_path)
+    before=path.read_bytes()
+    db=tmp_path/"samplechain.db"
+    con=connect(db)
+    row=con.execute("SELECT path,raw FROM source LIMIT 1").fetchone() if "source"!='source_file' else con.execute('SELECT name AS path,raw FROM source_file LIMIT 1').fetchone()
+    from pathlib import Path
+    preserved=bytes(row['raw'])
+    Path(row['path']).write_bytes(b'changed after import')
+    assert bytes(con.execute("SELECT raw FROM source LIMIT 1").fetchone()[0])==preserved
+    assert before and preserved
