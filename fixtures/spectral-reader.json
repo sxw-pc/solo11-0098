@@ -1,0 +1,17 @@
+{
+  "case_id":"control-spectrum-2026-05-08",
+  "batch_id":"batch-1",
+  "control_id":"CTRL-1",
+  "analytes":["X","Y"],
+  "channels":["C1","C2","C3"],
+  "standards":[
+    {"id":"BLANK","known":{"X":0,"Y":0},"observed":{"C1":0,"C2":0,"C3":0}},
+    {"id":"STD-X","known":{"X":10,"Y":0},"observed":{"C1":10,"C2":10,"C3":20}},
+    {"id":"STD-Y","known":{"X":0,"Y":10},"observed":{"C1":10,"C2":20,"C3":10}}
+  ],
+  "undiluted":{"C1":{"value":10,"saturated":false},"C2":{"value":12,"saturated":true,"lower_bound":12},"C3":{"value":16,"saturated":false}},
+  "diluted_remeasurement":{"dilution_factor":2,"C1":{"value":5,"saturated":false},"C2":{"value":7.5,"saturated":false}},
+  "methods":["auxiliary_channel","dilution_remeasurement"],
+  "signal_tolerance":0.01,
+  "report_unit":"synthetic-concentration"
+}
