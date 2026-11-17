@@ -1,0 +1,17 @@
+{
+  "case_id":"reagents-2026-05-01",
+  "batch_id":"batch-1",
+  "reagent":"assay-kit-R",
+  "storage":{"capacity_units":6,"min_c":2,"max_c":8},
+  "demands":[
+    {"id":"D1","at":"2026-05-01T12:00:00+08:00","units":4},
+    {"id":"D2","at":"2026-05-02T12:00:00+08:00","units":4}
+  ],
+  "offers":[
+    {"id":"E1","vendor":"economy","arrival":"2026-05-01T09:00:00+08:00","expiry":"2026-05-03T00:00:00+08:00","pack_units":4,"pack_cents":4000,"max_packs":1,"disrupted_in":["economy_day1_outage"]},
+    {"id":"E2","vendor":"economy","arrival":"2026-05-02T09:00:00+08:00","expiry":"2026-05-04T00:00:00+08:00","pack_units":4,"pack_cents":4000,"max_packs":1,"disrupted_in":[]},
+    {"id":"R1","vendor":"rapid","arrival":"2026-05-01T09:00:00+08:00","expiry":"2026-05-03T00:00:00+08:00","pack_units":4,"pack_cents":8000,"max_packs":1,"disrupted_in":[]}
+  ],
+  "allowed_scenarios":["normal","economy_day1_outage"],
+  "purchase_policies":["min_cash","protect_day1"]
+}
