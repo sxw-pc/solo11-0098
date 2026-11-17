@@ -1,0 +1,19 @@
+{
+  "case_id":"control-plate-2026-05-09",
+  "batch_id":"batch-1",
+  "plate_id":"PLATE-1",
+  "wells":[
+    {"id":"A1","target_ul":100,"target_concentration":100},
+    {"id":"A2","target_ul":100,"target_concentration":10},
+    {"id":"B1","target_ul":100,"target_concentration":10},
+    {"id":"B2","target_ul":100,"target_concentration":0}
+  ],
+  "reservoirs":[
+    {"id":"HIGH","concentration":100,"available_ul":120},
+    {"id":"LOW","concentration":10,"available_ul":200},
+    {"id":"DILUENT","concentration":0,"available_ul":300}
+  ],
+  "robot":{"id":"ROBOT-1","max_aspirate_ul":100,"tip_count":6,"dispense_ack_journal":true},
+  "preparation_contracts":["direct_stock","dilute_from_high"],
+  "fault_injection":{"point":"after_dispense_before_ack","well":"A2","command_index":2}
+}
