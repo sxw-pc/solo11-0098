@@ -1,0 +1,1 @@
+{"invoices":[{"id":"INV-1","sample_id":"sample-1","amount_cents":8000},{"id":"INV-2","sample_id":"sample-2","amount_cents":8000}],"bank_ids":["C1","C2"],"beneficiaries":{"laboratory":"LAB-OWNER","sample_courier":"SAMPLE-COURIER"},"courier_share_cents":1600,"contracts":["laboratory_gross","courier_share"]}
