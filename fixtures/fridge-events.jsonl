@@ -1,0 +1,4 @@
+{"kind":"collect","device":"scanner-1","seq":1,"sample_id":"sample-1","ts":"2026-01-01T08:00:00Z"}
+{"kind":"fridge_in","device":"scanner-1","seq":2,"sample_id":"sample-1","ts":"2026-01-01T08:05:00Z"}
+{"kind":"collect","device":"scanner-1","seq":3,"sample_id":"sample-2","ts":"2026-01-01T08:10:00Z"}
+{"kind":"fridge_in","device":"scanner-1","seq":4,"sample_id":"sample-2","ts":"2026-01-01T08:15:00Z"}

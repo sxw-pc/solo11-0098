@@ -1,0 +1,1 @@
+{"zones":[{"id":"Z1","sample_id":"sample-1","initial_c":4,"guard_c":6,"warming_c":[3,3]},{"id":"Z2","sample_id":"sample-2","initial_c":4,"guard_c":5,"warming_c":[2,2]}],"cooler":{"max_zones_per_period":1,"cooling_c":2,"tariff_cents":[100,1000]},"total_exposure_limit":6,"contracts":["min_energy","min_max_zone_exposure"]}
