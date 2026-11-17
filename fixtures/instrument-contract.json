@@ -1,0 +1,12 @@
+{
+  "case_id": "scanner-calibration-2026-04-02",
+  "devices": [
+    {"id":"scanner-A","certificate_expires":"2026-04-02T11:00:00+08:00","service_window":{"start":"2026-04-02T09:00:00+08:00","end":"2026-04-02T12:00:00+08:00"}},
+    {"id":"scanner-B","certificate_expires":"2026-04-02T12:00:00+08:00","service_window":{"start":"2026-04-02T09:00:00+08:00","end":"2026-04-02T12:00:00+08:00"}}
+  ],
+  "spares": [{"id":"scanner-S","certificate_expires":"2027-01-01T00:00:00+08:00"}],
+  "technicians": [{"id":"tech-1","start":"2026-04-02T09:00:00+08:00","end":"2026-04-02T12:00:00+08:00","skills":["calibrate","swap"]}],
+  "operations": {"in_place_minutes":60,"swap_minutes":30,"bench_minutes":60},
+  "costs_cents": {"labor_per_hour":5000,"spare_lease":7000},
+  "service_policies": ["economy_in_place","continuity_hot_swap"]
+}
