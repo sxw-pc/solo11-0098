@@ -6,6 +6,7 @@ from pathlib import Path
 from .store import connect
 from .ingest import ingest
 from .rules import evaluate
+from . import pipette
 
 def init(db_path,batch,sample,expiry='2027-01-01T00:00:00Z'):
     con=connect(db_path)
@@ -39,6 +40,10 @@ def main():
     r=sub.add_parser('report');r.add_argument('--db',required=True);r.add_argument('--out',required=True)
     x=sub.add_parser('inspect');x.add_argument('--db',required=True);x.add_argument('--sample',required=True)
     n=sub.add_parser('register-sample');n.add_argument('--db',required=True);n.add_argument('--batch',required=True);n.add_argument('--sample',required=True);n.add_argument('--replaces')
+    pr=sub.add_parser('pipette-register');pr.add_argument('--db',required=True);pr.add_argument('--contract',required=True)
+    pp=sub.add_parser('pipette-plan');pp.add_argument('--db',required=True);pp.add_argument('--case',required=True);pp.add_argument('--method',required=True,choices=['direct_stock','dilute_from_high'])
+    pu=sub.add_parser('pipette-run');pu.add_argument('--db',required=True);pu.add_argument('--case',required=True);pu.add_argument('--method',required=True,choices=['direct_stock','dilute_from_high']);pu.add_argument('--inject-fault',action='store_true')
+    pf=sub.add_parser('pipette-report');pf.add_argument('--db',required=True);pf.add_argument('--case',required=True);pf.add_argument('--out',required=True)
     args=p.parse_args()
     if args.cmd=='demo':print(demo(args.workdir or tempfile.mkdtemp(prefix='samplechain-')))
     elif args.cmd=='init':init(args.db,args.batch,args.sample)
@@ -49,6 +54,10 @@ def main():
         con=connect(args.db)
         with con:con.execute('INSERT INTO sample(id,batch_id,replacement_of) VALUES (?,?,?)',(args.sample,args.batch,args.replaces))
         con.close()
+    elif args.cmd=='pipette-register':print(pipette.register(args.db,args.contract))
+    elif args.cmd=='pipette-plan':print(json.dumps(pipette.plan(args.db,args.case,args.method),ensure_ascii=False))
+    elif args.cmd=='pipette-run':print(json.dumps(pipette.run_method(args.db,args.case,args.method,inject_fault=args.inject_fault),ensure_ascii=False))
+    elif args.cmd=='pipette-report':print(pipette.report(args.db,args.case,args.out))
     else:
         con=connect(args.db);print(json.dumps({'decision':[dict(r) for r in con.execute('SELECT * FROM decision WHERE sample_id=?',(args.sample,))],'events':[dict(r) for r in con.execute('SELECT * FROM event WHERE sample_id=? ORDER BY ts,id',(args.sample,))]},ensure_ascii=False));con.close()
 if __name__=='__main__':main()

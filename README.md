@@ -17,3 +17,9 @@ Batch → Sample，Source → Event，Event → Issue，Sample → Decision。�
 审计台账：Run 由规则版本和来源摘要确定，Evidence 关联原始对象与来源，Decision 引用 Run；重复核验保持同一输入的报告稳定。
 
 原始来源字节保存在 SQLite BLOB 中，JSON 证据包以 Base64 表示字节；修改输入文件不会覆盖已采录证据。
+
+## 机器人质控板制备
+
+`pipette-register` 把制备合同冻结进库（仅绑定真实批次，不产生命令或液体移动）；`pipette-plan` 按批准的 `direct_stock` 或 `dilute_from_high` 生成逐条吸排命令（源容器、吸入体积、一次性枪头、目标孔、预期目标体积）；`pipette-run` 驱动模拟机器人执行，`--inject-fault` 注入合同约定的“排液后 ACK 丢失”故障；`pipette-report` 输出 JSON 机器审计与 Markdown 板图、试剂库存账、枪头去向。
+
+执行约束：单次吸液不超过机器人上限，容器实物余额不为负，枪头一次性且不得把高浓度残留带回低浓度或空白容器；先确认吸入才能排出，一份液体只喂一条排出命令。机器人消耗日志追加写、哈希链、触发器禁止改删。ACK 丢失时用日志与独立孔位回读对账：已消耗则补账，证明未执行才重发一次，无法证明则隔离孔位与枪头，绝不盲重放。过量或污染不靠回滚抹去：原孔标记废弃并保留实测，按真实库存另排新孔，库存或枪头不足时如实记录 `replan_blocked`。
