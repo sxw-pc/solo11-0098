@@ -6,6 +6,8 @@ from pathlib import Path
 from .store import connect
 from .ingest import ingest
 from .rules import evaluate
+from . import fridge_control
+from .report import write_report
 
 def init(db_path,batch,sample,expiry='2027-01-01T00:00:00Z'):
     con=connect(db_path)
@@ -39,6 +41,12 @@ def main():
     r=sub.add_parser('report');r.add_argument('--db',required=True);r.add_argument('--out',required=True)
     x=sub.add_parser('inspect');x.add_argument('--db',required=True);x.add_argument('--sample',required=True)
     n=sub.add_parser('register-sample');n.add_argument('--db',required=True);n.add_argument('--batch',required=True);n.add_argument('--sample',required=True);n.add_argument('--replaces')
+    rg=sub.add_parser('register-fridge');rg.add_argument('--db',required=True);rg.add_argument('--case-id',required=True);rg.add_argument('--fixture',required=True);rg.add_argument('--sensors',required=True)
+    pl=sub.add_parser('fridge-plan');pl.add_argument('--db',required=True);pl.add_argument('--case-id',required=True);pl.add_argument('--contract',required=True,choices=list(fridge_control.solver.CONTRACTS))
+    ex=sub.add_parser('fridge-execute');ex.add_argument('--db',required=True);ex.add_argument('--plan-id',required=True);ex.add_argument('--period',required=True,type=int)
+    fb=sub.add_parser('fridge-feedback');fb.add_argument('--db',required=True);fb.add_argument('--case-id',required=True);fb.add_argument('--feed',required=True)
+    gp=sub.add_parser('fridge-plan-show');gp.add_argument('--db',required=True);gp.add_argument('--plan-id',required=True)
+    fr=sub.add_parser('fridge-report');fr.add_argument('--db',required=True);fr.add_argument('--out',required=True)
     args=p.parse_args()
     if args.cmd=='demo':print(demo(args.workdir or tempfile.mkdtemp(prefix='samplechain-')))
     elif args.cmd=='init':init(args.db,args.batch,args.sample)
@@ -49,6 +57,18 @@ def main():
         con=connect(args.db)
         with con:con.execute('INSERT INTO sample(id,batch_id,replacement_of) VALUES (?,?,?)',(args.sample,args.batch,args.replaces))
         con.close()
-    else:
+    elif args.cmd=='inspect':
         con=connect(args.db);print(json.dumps({'decision':[dict(r) for r in con.execute('SELECT * FROM decision WHERE sample_id=?',(args.sample,))],'events':[dict(r) for r in con.execute('SELECT * FROM event WHERE sample_id=? ORDER BY ts,id',(args.sample,))]},ensure_ascii=False));con.close()
+    elif args.cmd=='register-fridge':
+        print(json.dumps(fridge_control.register(args.db,args.case_id,args.fixture,args.sensors),ensure_ascii=False))
+    elif args.cmd=='fridge-plan':
+        print(json.dumps(fridge_control.plan(args.db,args.case_id,args.contract),ensure_ascii=False))
+    elif args.cmd=='fridge-execute':
+        print(json.dumps(fridge_control.execute(args.db,args.plan_id,args.period),ensure_ascii=False))
+    elif args.cmd=='fridge-feedback':
+        print(json.dumps(fridge_control.ingest_feedback(args.db,args.case_id,args.feed),ensure_ascii=False))
+    elif args.cmd=='fridge-plan-show':
+        print(json.dumps(fridge_control.get_plan(args.db,args.plan_id),ensure_ascii=False))
+    elif args.cmd=='fridge-report':
+        print(write_report(args.db,args.out))
 if __name__=='__main__':main()

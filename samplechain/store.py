@@ -12,6 +12,11 @@ CREATE TABLE IF NOT EXISTS run(id TEXT PRIMARY KEY, rules_version TEXT NOT NULL,
 CREATE TABLE IF NOT EXISTS evidence(id TEXT PRIMARY KEY, run_id TEXT NOT NULL REFERENCES run(id), subject_id TEXT NOT NULL, source_id INTEGER REFERENCES source(id), object_kind TEXT NOT NULL, object_id INTEGER NOT NULL, detail TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS decision(sample_id TEXT PRIMARY KEY REFERENCES sample(id), result TEXT NOT NULL, reasons TEXT NOT NULL, event_ids TEXT NOT NULL, rules_version TEXT NOT NULL, run_id TEXT NOT NULL REFERENCES run(id));
 CREATE TABLE IF NOT EXISTS fridge_case(id TEXT PRIMARY KEY,payload TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS fridge_feed(id INTEGER PRIMARY KEY, case_id TEXT, sha256 TEXT NOT NULL UNIQUE, path TEXT NOT NULL, raw BLOB NOT NULL DEFAULT X'', status TEXT NOT NULL, detail TEXT NOT NULL DEFAULT '');
+CREATE TABLE IF NOT EXISTS fridge_plan(id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES fridge_case(id), contract TEXT NOT NULL, plan_version INTEGER NOT NULL, status TEXT NOT NULL, basis TEXT NOT NULL, summary TEXT NOT NULL, evidence TEXT NOT NULL, supersedes TEXT, created_at TEXT NOT NULL, UNIQUE(case_id,contract,plan_version));
+CREATE TABLE IF NOT EXISTS fridge_command(id INTEGER PRIMARY KEY, plan_id TEXT NOT NULL REFERENCES fridge_plan(id), period INTEGER NOT NULL, zone_id TEXT, action TEXT NOT NULL, status TEXT NOT NULL, tariff_cents INTEGER NOT NULL, energy_cents INTEGER NOT NULL, UNIQUE(plan_id,period));
+CREATE TABLE IF NOT EXISTS fridge_period_state(id INTEGER PRIMARY KEY, plan_id TEXT NOT NULL REFERENCES fridge_plan(id), period INTEGER NOT NULL, zone_id TEXT NOT NULL, temp_before_c REAL NOT NULL, temp_after_c REAL NOT NULL, reading_c REAL, exposure_increment_c REAL NOT NULL, cumulative_exposure_c REAL NOT NULL, tariff_cents INTEGER NOT NULL, energy_cents INTEGER NOT NULL, compressor_zone TEXT, UNIQUE(plan_id,period,zone_id));
+CREATE TABLE IF NOT EXISTS fridge_hold(id INTEGER PRIMARY KEY, plan_id TEXT, case_id TEXT NOT NULL, reason TEXT NOT NULL, detail TEXT NOT NULL, created_at TEXT NOT NULL, cleared INTEGER NOT NULL DEFAULT 0);
 """
 
 def connect(path):
