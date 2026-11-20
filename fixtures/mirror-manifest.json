@@ -2,9 +2,9 @@
   "case_id":"scanner-D1-2026-05-06",
   "device":"D1",
   "chunks":[
-    {"id":"P1","file":"primary-1.jsonl","origin":"primary","seq_from":1,"seq_to":3},
-    {"id":"P2","file":"primary-2.jsonl","origin":"primary","seq_from":4,"seq_to":6},
-    {"id":"M2","file":"mirror-2.jsonl","origin":"witness_mirror","seq_from":4,"seq_to":6}
+    {"id":"P1","file":"primary-1.jsonl","origin":"primary","seq_from":1,"seq_to":3,"signer":"scanner-D1-primary"},
+    {"id":"P2","file":"primary-2.jsonl","origin":"primary","seq_from":4,"seq_to":6,"signer":"scanner-D1-primary"},
+    {"id":"M2","file":"mirror-2.jsonl","origin":"witness_mirror","seq_from":4,"seq_to":6,"signer":"scanner-D1-mirror"}
   ],
   "authority_contracts":["device_primary","witness_mirror"],
   "seal_epoch":7,
