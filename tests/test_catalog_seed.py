@@ -33,3 +33,23 @@ def test_catalog_case_rejects_changed_contract(tmp_path):
     changed.write_text(json.dumps(case))
     with pytest.raises(ValueError, match='catalog_case_conflict'):
         register(db_path, 'cat-1', changed, FIX)
+
+
+def test_seed_freezes_real_pages_and_sources_only(tmp_path):
+    db_path = tmp_path / 'catalog.db'
+    init(db_path, 'batch-c', 'sample-1')
+    register(db_path, 'cat-1', FIX / 'catalog-contract.json', FIX)
+    db = connect(db_path)
+    payload = json.loads(db.execute('SELECT payload FROM catalog_case').fetchone()[0])
+    assert set(payload) == {'contract', 'contract_sha256', 'pages', 'sample_inventory_context'}
+    for page in payload['pages']:
+        assert page['bytes'].encode() == (FIX / page['name']).read_bytes()
+    assert payload['contract']['source_pages'] == [p['name'] for p in payload['pages']]
+    for table in ('catalog_offer', 'catalog_issue', 'catalog_version', 'lims_publication'):
+        assert db.execute(f'SELECT count(*) FROM {table}').fetchone()[0] == 0
+    db.close()
+
+
+def test_register_requires_initialized_laboratory(tmp_path):
+    with pytest.raises(ValueError, match='laboratory_not_initialized'):
+        register(tmp_path / 'empty.db', 'cat-1', FIX / 'catalog-contract.json', FIX)

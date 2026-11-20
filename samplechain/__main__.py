@@ -6,6 +6,10 @@ from pathlib import Path
 from .store import connect
 from .ingest import ingest
 from .rules import evaluate
+from .catalog import STRATEGIES, register as catalog_register, extract as catalog_extract, \
+    build_candidate as catalog_candidate, publish as catalog_publish, \
+    recover as catalog_recover, catalog_report
+from .lims import MockLims
 
 def init(db_path,batch,sample,expiry='2027-01-01T00:00:00Z'):
     con=connect(db_path)
@@ -39,6 +43,12 @@ def main():
     r=sub.add_parser('report');r.add_argument('--db',required=True);r.add_argument('--out',required=True)
     x=sub.add_parser('inspect');x.add_argument('--db',required=True);x.add_argument('--sample',required=True)
     n=sub.add_parser('register-sample');n.add_argument('--db',required=True);n.add_argument('--batch',required=True);n.add_argument('--sample',required=True);n.add_argument('--replaces')
+    cr=sub.add_parser('catalog-register');cr.add_argument('--db',required=True);cr.add_argument('--case',required=True);cr.add_argument('--contract',required=True);cr.add_argument('--pages',required=True)
+    ce=sub.add_parser('catalog-extract');ce.add_argument('--db',required=True);ce.add_argument('--case',required=True)
+    cn=sub.add_parser('catalog-candidate');cn.add_argument('--db',required=True);cn.add_argument('--case',required=True);cn.add_argument('--strategy',required=True,choices=list(STRATEGIES))
+    cp=sub.add_parser('catalog-publish');cp.add_argument('--db',required=True);cp.add_argument('--case',required=True);cp.add_argument('--version',required=True);cp.add_argument('--nonce',required=True);cp.add_argument('--lims',required=True)
+    cv=sub.add_parser('catalog-recover');cv.add_argument('--db',required=True);cv.add_argument('--case',required=True);cv.add_argument('--lims',required=True)
+    cf=sub.add_parser('catalog-report');cf.add_argument('--db',required=True);cf.add_argument('--case',required=True);cf.add_argument('--out',required=True)
     args=p.parse_args()
     if args.cmd=='demo':print(demo(args.workdir or tempfile.mkdtemp(prefix='samplechain-')))
     elif args.cmd=='init':init(args.db,args.batch,args.sample)
@@ -49,6 +59,12 @@ def main():
         con=connect(args.db)
         with con:con.execute('INSERT INTO sample(id,batch_id,replacement_of) VALUES (?,?,?)',(args.sample,args.batch,args.replaces))
         con.close()
+    elif args.cmd=='catalog-register':print(catalog_register(args.db,args.case,args.contract,args.pages))
+    elif args.cmd=='catalog-extract':print(catalog_extract(args.db,args.case))
+    elif args.cmd=='catalog-candidate':print(catalog_candidate(args.db,args.case,args.strategy))
+    elif args.cmd=='catalog-publish':print(catalog_publish(args.db,args.case,args.version,args.nonce,MockLims(args.lims)))
+    elif args.cmd=='catalog-recover':print(catalog_recover(args.db,args.case,MockLims(args.lims)))
+    elif args.cmd=='catalog-report':print(catalog_report(args.db,args.case,args.out))
     else:
         con=connect(args.db);print(json.dumps({'decision':[dict(r) for r in con.execute('SELECT * FROM decision WHERE sample_id=?',(args.sample,))],'events':[dict(r) for r in con.execute('SELECT * FROM event WHERE sample_id=? ORDER BY ts,id',(args.sample,))]},ensure_ascii=False));con.close()
 if __name__=='__main__':main()
